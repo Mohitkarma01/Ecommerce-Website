@@ -1,0 +1,10 @@
+{% load static %}
+<h2>{{ product.name }}</h2>
+<img src="{{ product.image.url }}" alt="{{ product.name }}" width="300">
+<p>Price: ₹{{ product.price }}</p>
+<p>Weight: {{ product.weight }} kg</p>
+
+<form method="POST" action="{% url 'checkout' product.id %}">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-success">Buy Now</button>
+</form>

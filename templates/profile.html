@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | BigBasket</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .badge-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .progress-bar-custom {
+            height: 20px;
+            border-radius: 10px;
+            background: linear-gradient(to right, #28a745, #20c997);
+        }
+        .stats-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    
+    <div class="container py-4">
+        <div class="row">
+            <!-- Left Column - Badge Info -->
+            <div class="col-md-4">
+                <div class="badge-card text-center">
+                    <h1>{{ profile.get_badge_icon }}</h1>
+                    <h2 class="mb-3">{{ profile.badge }} Member</h2>
+                    <h4>{{ profile.discount_percentage }}% DISCOUNT</h4>
+                    <p class="mb-0">On All Orders</p>
+                </div>
+                
+                <!-- Stats -->
+                <div class="card stats-card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Your Stats</h5>
+                        <div class="mb-2">
+                            <strong>Total Spent:</strong>
+                            <span class="float-end text-success">₹{{ profile.total_spent|floatformat:2 }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Total Orders:</strong>
+                            <span class="float-end">{{ profile.total_orders }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Loyalty Points:</strong>
+                            <span class="float-end text-warning">{{ profile.loyalty_points }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Member Since:</strong>
+                            <span class="float-end">{{ user.date_joined|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Progress & Next Level -->
+            <div class="col-md-8">
+                <!-- Progress to Next Level -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            {% if next_level.next %}
+                            Progress to {{ next_level.next }}
+                            {% else %}
+                            🏆 You've Reached Maximum Level!
+                            {% endif %}
+                        </h5>
+                        
+                        {% if next_level.next %}
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-custom" 
+                                 style="width: {% widthratio next_level.current next_level.amount 100 %}%">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>₹{{ next_level.current|floatformat:2 }} spent</span>
+                            <span>₹{{ next_level.amount }} needed for {{ next_level.next }}</span>
+                        </div>
+                        
+                        <div class="mt-3 alert alert-info">
+                            <strong>₹{{ next_level.amount|add:"-next_level.current"|floatformat:2 }}</strong> 
+                            more to reach <strong>{{ next_level.next }}</strong> level
+                        </div>
+                        {% else %}
+                        <div class="alert alert-success">
+                            <h5>🎉 Congratulations!</h5>
+                            <p>You are our DIAMOND member with maximum benefits!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Badge Benefits -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Your Benefits</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                {{ profile.discount_percentage }}% discount on all orders
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Priority customer support
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Early access to sales
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Exclusive deals & offers
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Recent Orders -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Recent Orders</h5>
+                        {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td><a href="{% url 'order_detail' order.id %}">#{{ order.id }}</a></td>
+                                        <td>{{ order.created_at|date:"d M" }}</td>
+                                        <td class="text-success">₹{{ order.final_total|floatformat:2 }}</td>
+                                        <td><span class="badge bg-success">{{ order.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No orders yet. <a href="{% url 'index' %}">Start shopping!</a></p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

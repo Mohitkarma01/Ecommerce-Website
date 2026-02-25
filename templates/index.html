@@ -1,0 +1,1407 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Grocery store</title>
+  <link rel="icon" type="image/png" href="{% static 'image/log.png' %}">
+  <link rel="stylesheet" href="{% static 'index.css' %}">
+
+  
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+
+  <!-- wheelspin -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    .media-box {
+  position: relative;
+  width: 100%;
+  height: 180px;       /* 🔥 same as card image height */
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+/* image & video exactly same size */
+.media-box img,
+.media-box iframe {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* video hidden by default */
+.recipe-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  border: none;
+}
+
+/* hover logic */
+.media-box:hover .product-img {
+  display: none;
+}
+
+.media-box:hover .recipe-video {
+  display: block;
+}
+.card-img-top {
+  height: 180px;
+  object-fit: cover;
+}
+/* ========== SPIN WHEEL STYLES ========== */
+
+/* Floating Spin Button */
+.floating-spin-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s infinite;
+    transition: all 0.3s ease;
+    border: 3px solid white;
+}
+
+.floating-spin-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.7);
+}
+
+.spin-text {
+    font-weight: bold;
+    font-size: 16px;
+    letter-spacing: 1px;
+}
+
+.spin-sub {
+    font-size: 11px;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Popup Container */
+.wheel-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.wheel-container {
+    background: white;
+    border-radius: 25px;
+    width: 90%;
+    max-width: 500px;
+    padding: 25px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.wheel-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 30px;
+    color: #666;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.wheel-close-btn:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+/* Wheel Header */
+.wheel-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.wheel-header h2 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.wheel-subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.spin-info {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 15px;
+}
+
+.spin-count, .user-points {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    background: #f8f9fa;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.spin-count i { color: #FFD166; }
+.user-points i { color: #06D6A0; }
+
+/* Wheel Area */
+.wheel-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 25px 0;
+}
+
+.wheel-wrapper {
+    position: relative;
+    width: 400px;
+    height: 400px;
+}
+
+#wheelCanvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+}
+
+.wheel-pointer {
+    font-size: 30px;
+    color: #ff4757;
+    margin-top: -40px;
+}
+
+/* Spin Button */
+.spin-action-btn {
+    margin-top: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 18px 50px;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s;
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.spin-action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
+}
+
+.spin-action-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.spin-btn-text {
+    font-size: 20px;
+    letter-spacing: 2px;
+}
+
+.spin-btn-cost {
+    font-size: 12px;
+    opacity: 0.9;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 3px 10px;
+    border-radius: 15px;
+}
+
+/* Wheel Segments Info */
+.wheel-segments {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin: 25px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 15px;
+}
+
+.segment-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    background: white;
+    border-radius: 20px;
+    font-size: 13px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.segment-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+/* Recent Winners */
+.recent-winners {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin: 20px 0;
+}
+
+.recent-winners h4 {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+#winners-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.winner-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.wheel-footer {
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* Result Animation */
+.result-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.result-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 400px;
+    animation: popIn 0.5s ease;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.result-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+}
+
+.result-title {
+    font-size: 28px;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.result-message {
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .wheel-wrapper {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .floating-spin-btn {
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 15px;
+    }
+    
+    .wheel-container {
+        width: 95%;
+        padding: 20px;
+    }
+}
+
+
+  </style>
+
+</head>
+
+<body>
+{% include 'navbar.html' %}
+
+<form style="display:none;">
+  {% csrf_token %}
+</form>
+
+
+
+  <!-- ✅ SUCCESS / ERROR MESSAGES (navbar ke just upar) -->
+  <!-- ✅ SUCCESS / ERROR MESSAGES (navbar ke just upar) -->
+  {% if messages %}
+  <div class="alert-container position-fixed top-0 start-50 translate-middle-x mt-2" style="z-index: 1050; width: 50%;">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show text-center fw-bold shadow" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+
+  <!-- बाकी का HTML code यहाँ हो सकता है (cards, footer वगैरह) -->
+
+  <!-- ✅ ये script बिलकुल body के end में डालो -->
+  <script>
+    setTimeout(() => {
+      let alert = document.querySelector('.alert');
+      if (alert) {
+        alert.classList.remove('show');
+      }
+    }, 3000);
+  </script>
+
+
+  <script>
+    setTimeout(() => {
+      let alert = document.querySelector('.alert');
+      if (alert) {
+        alert.classList.remove('show');
+      }
+    }, 3000);
+  </script>
+
+
+  <div id="carouselExample" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000" data-bs-wrap="true">
+
+    <!-- 🔵 Dots / Indicators -->
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="0" class="active"></button>
+      <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="1"></button>
+      <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="2"></button>
+      <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="3"></button>
+    </div>
+
+    <!-- 🖼️ Images (same as yours) -->
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <img src="{% static 'image/pexels-caio-64613.jpg' %}" height="400px" class="d-block w-100" alt="...">
+      </div>
+
+      <div class="carousel-item">
+        <img src="{% static 'image/pexels-cenali-2733918.jpg' %}" height="400px" class="d-block w-100" alt="...">
+      </div>
+
+      <div class="carousel-item">
+        <img src="{% static 'image/pexels-carlo-martin-alcordo-1279322-2449665.jpg' %}" height="400px"
+          class="d-block w-100" alt="...">
+      </div>
+
+      <div class="carousel-item">
+        <img src="{% static 'image/pexels-caio-64613.jpg' %}" height="400px" class="d-block w-100" alt="...">
+      </div>
+    </div>
+
+    <!-- ⏪ / ⏩ Buttons -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+
+<!-- THESE IS FOR PRODUCT -->
+<div class="row">
+  {% for product in products %}
+  <div class="col-md-3 mb-4">
+    <div class="card shadow-sm h-100">
+      
+      <!-- Discount Badge -->
+      <div class="position-absolute top-0 end-0 m-2">
+        <span class="badge bg-danger">5% OFF</span>
+      </div>
+      
+      <div class="media-box">
+        {% if product.image %}
+          <img src="{{ product.image.url }}" 
+               class="card-img-top product-img" 
+               alt="{{ product.name }}"
+               style="height: 200px; object-fit: cover;">
+        {% else %}
+          <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" 
+               class="card-img-top product-img" 
+               alt="Default Food Image"
+               style="height: 200px; object-fit: cover;">
+        {% endif %}
+      </div>
+      
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title text-danger mb-2">{{ product.name }}</h5>
+        
+        <!-- Price with Discount -->
+        <div class="mb-2">
+          <span class="text-muted text-decoration-line-through me-2">
+            ₹{{ product.price|floatformat:2 }}
+          </span>
+          <span class="fs-5 fw-bold text-success">
+            ₹{{ product.get_discounted_price|floatformat:2 }}
+          </span>
+          <small class="text-danger ms-2">Save 5%</small>
+        </div>
+        
+        <p class="card-text text-muted small">
+          <i class="bi bi-box"></i> Weight: {{ product.weight }} {{ product.unit }}
+        </p>
+        
+        <!-- Industry Standard Buttons -->
+        <div class="d-flex gap-2 mt-auto">
+            <!-- Add to Cart (AJAX) -->
+            <button
+              type="button"
+              class="btn btn-outline-primary add-to-cart-btn"
+              data-id="{{ product.id }}">
+              <i class="bi bi-cart-plus"></i> Add to Cart
+            </button>
+
+
+            <!-- Buy Now (Direct) -->
+            <a href="{% url 'buy_now' product.id %}" class="btn btn-success flex-fill">
+                <i class="bi bi-lightning-fill"></i> Buy Now
+            </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <!-- No products message -->
+  {% endfor %}
+</div>
+
+  <!-- Footer -->
+  <footer class="bg-danger text-white text-center p-3">
+    <p class="mb-0">© 2025 BigBasket | All Rights Reserved</p>
+  </footer>
+  <div class="container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+    integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"
+    integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y"
+    crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+  <!-- Spin Button to open wheel -->
+  <!-- Spin Wheel Button (Floating) -->
+<div id="spin-wheel-btn" class="floating-spin-btn">
+    <div class="spin-text">🎁 SPIN & WIN</div>
+    <div class="spin-sub">Daily Offer!</div>
+</div>
+
+<!-- Spin Wheel Popup -->
+<div id="spin-wheel-popup" class="wheel-popup">
+    <div class="wheel-container">
+        <!-- Close Button -->
+        <button class="wheel-close-btn" onclick="closeWheel()">×</button>
+        
+        <!-- Wheel Header -->
+        <div class="wheel-header">
+            <h2>🎰 SPIN TO WIN!</h2>
+            <p class="wheel-subtitle">Spin the wheel & get exciting rewards</p>
+            
+            <!-- User Info & Spin Counter -->
+            <div class="spin-info">
+                <div class="spin-count">
+                    <i class="bi bi-lightning-charge"></i>
+                    <span id="daily-spins">1</span>/1 Spins Today
+                </div>
+                <div class="user-points">
+                    <i class="bi bi-gem"></i>
+                    <span id="user-points">0</span> Points
+                </div>
+            </div>
+        </div>
+        
+        <!-- Wheel Area -->
+        <div class="wheel-area">
+            <!-- Wheel -->
+            <div class="wheel-wrapper">
+                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                <div class="wheel-center">
+                    <div class="wheel-pointer">▼</div>
+                </div>
+            </div>
+            
+            <!-- Spin Button -->
+            <button id="spin-action-btn" class="spin-action-btn" onclick="spinWheel()">
+                <span class="spin-btn-text">SPIN NOW</span>
+                <span class="spin-btn-cost">FREE</span>
+            </button>
+        </div>
+        
+        <!-- Wheel Segments Info -->
+        <div class="wheel-segments">
+            <div class="segment-item">
+                <span class="segment-color" style="background: #FF6B6B;"></span>
+                <span>10% OFF</span>
+            </div>
+            <div class="segment-item">
+                <span class="segment-color" style="background: #4ECDC4;"></span>
+                <span>₹50 Cashback</span>
+            </div>
+            <div class="segment-item">
+                <span class="segment-color" style="background: #FFD166;"></span>
+                <span>Free Delivery</span>
+            </div>
+            <div class="segment-item">
+                <span class="segment-color" style="background: #06D6A0;"></span>
+                <span>20% OFF</span>
+            </div>
+            <div class="segment-item">
+                <span class="segment-color" style="background: #118AB2;"></span>
+                <span>₹100 OFF</span>
+            </div>
+            <div class="segment-item">
+                <span class="segment-color" style="background: #EF476F;"></span>
+                <span>Try Again</span>
+            </div>
+        </div>
+        
+        <!-- Recent Winners -->
+        <div class="recent-winners">
+            <h4>🏆 Recent Winners</h4>
+            <div id="winners-list">
+                <div class="winner-item">Priya won 10% OFF</div>
+                <div class="winner-item">Raj won ₹50 Cashback</div>
+                <div class="winner-item">Anjali won Free Delivery</div>
+            </div>
+        </div>
+        
+        <div class="wheel-footer">
+            <p><i class="bi bi-info-circle"></i> 1 free spin per day | Win upto ₹1000</p>
+        </div>
+        
+        {% csrf_token %}
+    </div>
+</div>
+  <script>
+    function openWheel() {
+      document.getElementById("wheel-popup").style.display = "flex";
+    }
+
+    function closeWheel() {
+      document.getElementById("wheel-popup").style.display = "none";
+    }
+
+    const offers = [
+      "🎉 Better luck next time!",
+      "🚚 Free Home Delivery!",
+      "🎉 Better luck next time!",
+      "🔖 20% OFF Vegetables!",
+      "🎉 Better luck next time!",
+      "⚡ Surprise Gift!",
+      "🎉 Better luck next time!"
+    ];
+
+    let isSpinning = false;
+
+    // Restrict daily spin
+    function canSpinToday() {
+      let lastSpin = localStorage.getItem("last_spin_date");
+      let today = new Date().toDateString();
+      return lastSpin !== today;
+    }
+
+    function saveSpinDate() {
+      let today = new Date().toDateString();
+      localStorage.setItem("last_spin_date", today);
+    }
+
+    // Apply offer to cart
+    function applyOfferToCart(offerText) {
+      if (offerText.includes("₹50 Cashback")) {
+        localStorage.setItem("cashback", 50);
+      }
+      if (offerText.includes("10% OFF")) {
+        localStorage.setItem("discount", "10%");
+      }
+      if (offerText.includes("20% OFF")) {
+        localStorage.setItem("discount", "20%");
+      }
+      if (offerText.includes("₹100 OFF")) {
+        localStorage.setItem("direct_off", 100);
+      }
+    }
+
+    function spinWheel() {
+
+      if (!canSpinToday()) {
+        alert("You already used your spin for today!");
+        return;
+      }
+
+      if (isSpinning) return;
+      isSpinning = true;
+
+      const wheel = document.getElementById("spin-wheel");
+      const result = document.getElementById("offer-result");
+
+      const segmentAngle = 45;
+      const randomIndex = Math.floor(Math.random() * 8);
+      const rotateTo = 360 * 5 + (randomIndex * segmentAngle);
+
+      wheel.style.transform = `rotate(${rotateTo}deg)`;
+
+      setTimeout(() => {
+        const selectedOffer = offers[randomIndex];
+        result.innerHTML = `<b>${selectedOffer}</b>`;
+
+        saveSpinDate();              // daily limit
+        applyOfferToCart(selectedOffer);  // apply offer
+
+        // Confetti blast
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.7 }
+        });
+
+        // Save in Django DB
+        saveSpinToServer(selectedOffer);
+
+        isSpinning = false;
+      }, 4000);
+    }
+
+    function saveSpinToServer(offer) {
+
+      const formData = new FormData();
+      formData.append("offer", offer);
+
+      fetch("/save-spin/", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: formData
+      });
+    }
+  </script>
+
+
+
+
+
+  <!-- logout show on screen -->
+  {% if messages %}
+  <div class="alert alert-success text-center mt-3" id="msgBox">
+    {% for message in messages %}
+    {{ message }}
+    {% endfor %}
+  </div>
+
+  <script>
+    // message 3 सेकंड बाद अपने आप गायब हो जाएगा
+    setTimeout(() => {
+      const msg = document.getElementById("msgBox");
+      if (msg) msg.style.display = "none";
+    }, 3000);
+  </script>
+  {% endif %}
+
+  <script>
+ 
+  // Function to increase cart/
+  
+  function increaseCart() {
+    cartCount++;
+    localStorage.setItem("cartCount", cartCount);
+    document.getElementById("cart-count").innerText = cartCount;
+  }
+
+  // Add to Cart buttons
+  document.querySelectorAll(".add-to-cart").forEach(btn => {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      increaseCart();
+    });
+  });
+
+  // Buy Now buttons
+  document.querySelectorAll(".buy-now").forEach(btn => {
+    btn.addEventListener("click", function (e) {
+      increaseCart();
+    });
+  });
+</script>
+
+
+<script>
+// Professional AJAX Add to Cart
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.id;
+            const button = this;
+            const originalText = button.innerHTML;
+            
+            // Show loading
+            button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Adding...';
+            button.disabled = true;
+            
+            // CSRF token
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch(`/cart/add/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update cart count
+                    document.getElementById('cart-count').innerText = data.cart_count;
+                    
+                    // Show success toast/message
+                    showToast('success', data.message);
+                    
+                    // Button success state
+                    button.innerHTML = '<i class="bi bi-check-circle"></i> Added!';
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-success');
+                    
+                    // Reset after 2 seconds
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.classList.remove('btn-success');
+                        button.classList.add('btn-outline-primary');
+                        button.disabled = false;
+                    }, 2000);
+                    
+                } else if (data.redirect) {
+                    // Redirect to login
+                    window.location.href = data.redirect;
+                } else {
+                    showToast('error', data.message || 'Something went wrong');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+                showToast('error', 'Network error. Please try again.');
+            });
+        });
+    });
+});
+
+// Toast notification function (industry standard)
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${type} border-0 position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    
+    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+    bsToast.show();
+    
+    toast.addEventListener('hidden.bs.toast', function () {
+        document.body.removeChild(toast);
+    });
+}
+</script>
+<script>
+// ========== UNIQUE SPIN WHEEL SYSTEM ==========
+
+// Wheel segments with unique colors and rewards
+const wheelSegments = [
+    { color: '#FF6B6B', text: '10% OFF', value: '10%_discount', weight: 15 },
+    { color: '#4ECDC4', text: '₹50 Cashback', value: '50_cashback', weight: 10 },
+    { color: '#FFD166', text: 'Free Delivery', value: 'free_delivery', weight: 20 },
+    { color: '#06D6A0', text: '20% OFF', value: '20%_discount', weight: 8 },
+    { color: '#118AB2', text: '₹100 OFF', value: '100_off', weight: 5 },
+    { color: '#EF476F', text: 'Try Again', value: 'try_again', weight: 25 },
+    { color: '#A663CC', text: '₹25 Cashback', value: '25_cashback', weight: 12 },
+    { color: '#FF9E00', text: '5% OFF', value: '5%_discount', weight: 20 },
+    { color: '#00BBF9', text: 'Surprise Gift', value: 'surprise_gift', weight: 5 },
+    { color: '#F15BB5', text: 'Double Points', value: 'double_points', weight: 10 },
+    { color: '#9B5DE5', text: '₹75 OFF', value: '75_off', weight: 7 },
+    { color: '#00F5D4', text: '15% OFF', value: '15%_discount', weight: 10 }
+];
+
+// User's spin data
+let userSpinData = {
+    dailySpins: 1,
+    totalSpins: 0,
+    points: 0,
+    spinHistory: [],
+    lastSpinDate: null
+};
+
+// DOM Elements
+const spinBtn = document.getElementById('spin-wheel-btn');
+const wheelPopup = document.getElementById('spin-wheel-popup');
+const spinActionBtn = document.getElementById('spin-action-btn');
+const wheelCanvas = document.getElementById('wheelCanvas');
+const dailySpinsElement = document.getElementById('daily-spins');
+const userPointsElement = document.getElementById('user-points');
+const winnersList = document.getElementById('winners-list');
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadUserData();
+    drawWheel();
+    updateUI();
+    loadRecentWinners();
+});
+
+// Load user data from localStorage
+function loadUserData() {
+    const savedData = localStorage.getItem('spinUserData');
+    if (savedData) {
+        userSpinData = JSON.parse(savedData);
+        
+        // Check if it's a new day
+        const today = new Date().toDateString();
+        if (userSpinData.lastSpinDate !== today) {
+            userSpinData.dailySpins = 1;
+            userSpinData.lastSpinDate = today;
+        }
+    }
+}
+
+// Save user data to localStorage
+function saveUserData() {
+    localStorage.setItem('spinUserData', JSON.stringify(userSpinData));
+}
+
+// Draw the wheel on canvas
+function drawWheel() {
+    const ctx = wheelCanvas.getContext('2d');
+    const centerX = wheelCanvas.width / 2;
+    const centerY = wheelCanvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 10;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+    
+    // Calculate total weight for probability
+    const totalWeight = wheelSegments.reduce((sum, segment) => sum + segment.weight, 0);
+    let currentAngle = 0;
+    
+    // Draw each segment
+    wheelSegments.forEach((segment, index) => {
+        const segmentAngle = (segment.weight / totalWeight) * (2 * Math.PI);
+        
+        // Draw segment
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + segmentAngle);
+        ctx.closePath();
+        
+        // Fill with segment color
+        ctx.fillStyle = segment.color;
+        ctx.fill();
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw text
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(currentAngle + segmentAngle / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 14px Arial';
+        ctx.fillText(segment.text, radius - 20, 5);
+        ctx.restore();
+        
+        currentAngle += segmentAngle;
+    });
+    
+    // Draw center circle
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+    ctx.strokeStyle = '#667eea';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+}
+
+// Open wheel popup
+function openWheel() {
+    wheelPopup.style.display = 'flex';
+    updateUI();
+}
+
+// Close wheel popup
+function closeWheel() {
+    wheelPopup.style.display = 'none';
+}
+
+// Check if user can spin
+function canSpin() {
+    if (userSpinData.dailySpins <= 0) {
+        showNotification('⚠️ No spins left today!', 'error');
+        return false;
+    }
+    return true;
+}
+
+// Spin the wheel
+function spinWheel() {
+    if (!canSpin()) return;
+    
+    // Disable spin button
+    spinActionBtn.disabled = true;
+    spinActionBtn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Spinning...';
+    
+    // Deduct daily spin
+    userSpinData.dailySpins--;
+    userSpinData.totalSpins++;
+    
+    // Select random segment based on weight
+    const totalWeight = wheelSegments.reduce((sum, segment) => sum + segment.weight, 0);
+    let random = Math.random() * totalWeight;
+    let selectedIndex = 0;
+    
+    for (let i = 0; i < wheelSegments.length; i++) {
+        random -= wheelSegments[i].weight;
+        if (random <= 0) {
+            selectedIndex = i;
+            break;
+        }
+    }
+    
+    const selectedSegment = wheelSegments[selectedIndex];
+    
+    // Calculate rotation (5 full rotations + segment offset)
+    const segmentAngle = 360 / wheelSegments.length;
+    const targetRotation = 360 * 5 + (selectedIndex * segmentAngle) + (Math.random() * segmentAngle);
+    
+    // Animate wheel
+    const wheel = document.querySelector('.wheel-wrapper');
+    wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.22, 0.99)';
+    wheel.style.transform = `rotate(${targetRotation}deg)`;
+    
+    // Show result after animation
+    setTimeout(() => {
+        showResult(selectedSegment);
+        updateUI();
+        saveUserData();
+        
+        // Save to server
+        saveSpinResult(selectedSegment);
+        
+        // Add to recent winners
+        addToWinners(selectedSegment);
+        
+        // Reset wheel after delay
+        setTimeout(() => {
+            wheel.style.transition = 'none';
+            wheel.style.transform = 'rotate(0deg)';
+            setTimeout(() => {
+                wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.22, 0.99)';
+            }, 50);
+            
+            // Re-enable button
+            spinActionBtn.disabled = false;
+            spinActionBtn.innerHTML = '<span class="spin-btn-text">SPIN AGAIN</span><span class="spin-btn-cost">' + (userSpinData.dailySpins > 0 ? 'FREE' : 'TOMORROW') + '</span>';
+        }, 3000);
+    }, 4000);
+}
+
+// Show result popup
+function showResult(segment) {
+    // Create result popup
+    const resultPopup = document.createElement('div');
+    resultPopup.className = 'result-popup';
+    resultPopup.style.display = 'flex';
+    
+    const icon = segment.value.includes('discount') ? '🎁' :
+                 segment.value.includes('cashback') ? '💰' :
+                 segment.value.includes('delivery') ? '🚚' :
+                 segment.value.includes('gift') ? '🎉' :
+                 segment.value.includes('points') ? '✨' : '🎯';
+    
+    resultPopup.innerHTML = `
+        <div class="result-content">
+            <div class="result-icon">${icon}</div>
+            <h2 class="result-title">CONGRATULATIONS!</h2>
+            <p class="result-message">You won:</p>
+            <h3 style="color: ${segment.color}; font-size: 32px; margin: 15px 0;">${segment.text}</h3>
+            <p class="result-message">${getResultMessage(segment.value)}</p>
+            <button onclick="closeResult()" class="btn btn-primary" style="padding: 12px 30px; border-radius: 25px;">CLAIM REWARD</button>
+            <p style="margin-top: 15px; font-size: 12px; color: #999;">Reward will be applied automatically</p>
+        </div>
+    `;
+    
+    document.body.appendChild(resultPopup);
+    
+    // Apply reward
+    applyReward(segment.value);
+    
+    // Confetti celebration
+    launchConfetti();
+}
+
+// Close result popup
+function closeResult() {
+    const resultPopup = document.querySelector('.result-popup');
+    if (resultPopup) {
+        resultPopup.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+            if (resultPopup.parentElement) {
+                resultPopup.parentElement.removeChild(resultPopup);
+            }
+        }, 300);
+    }
+}
+
+// Get result message
+function getResultMessage(value) {
+    const messages = {
+        '10%_discount': '10% discount applied to your next order!',
+        '20%_discount': '20% discount applied to your next order!',
+        '5%_discount': '5% discount applied to your next order!',
+        '15%_discount': '15% discount applied to your next order!',
+        '50_cashback': '₹50 cashback credited to your account!',
+        '25_cashback': '₹25 cashback credited to your account!',
+        'free_delivery': 'Free delivery on your next order!',
+        '100_off': '₹100 off on orders above ₹500!',
+        '75_off': '₹75 off on your next order!',
+        'surprise_gift': 'You won a surprise gift! Check your email.',
+        'double_points': 'Double loyalty points on your next purchase!',
+        'try_again': 'Better luck next time! Try again tomorrow.'
+    };
+    return messages[value] || 'Reward applied successfully!';
+}
+
+// Apply reward
+function applyReward(rewardValue) {
+    // Save reward to localStorage
+    const rewards = JSON.parse(localStorage.getItem('userRewards') || '[]');
+    rewards.push({
+        reward: rewardValue,
+        date: new Date().toISOString(),
+        claimed: false
+    });
+    localStorage.setItem('userRewards', JSON.stringify(rewards));
+    
+    // Update points if applicable
+    if (rewardValue.includes('cashback')) {
+        const amount = parseInt(rewardValue.split('_')[0]);
+        userSpinData.points += Math.floor(amount / 5);
+    } else if (rewardValue === 'double_points') {
+        userSpinData.points += 20;
+    } else if (!rewardValue.includes('try_again')) {
+        userSpinData.points += 5;
+    }
+    
+    saveUserData();
+}
+
+// Update UI elements
+function updateUI() {
+    dailySpinsElement.textContent = userSpinData.dailySpins;
+    userPointsElement.textContent = userSpinData.points;
+    
+    // Update spin button text
+    if (userSpinData.dailySpins <= 0) {
+        spinActionBtn.innerHTML = '<span class="spin-btn-text">COME BACK TOMORROW</span><span class="spin-btn-cost">0 SPINS LEFT</span>';
+        spinActionBtn.disabled = true;
+    } else {
+        spinActionBtn.disabled = false;
+    }
+}
+
+// Load recent winners
+function loadRecentWinners() {
+    const winners = JSON.parse(localStorage.getItem('recentWinners') || '[]');
+    if (winners.length === 0) {
+        // Default winners
+        const defaultWinners = [
+            { name: 'Priya', reward: '10% OFF', time: '2 hours ago' },
+            { name: 'Raj', reward: '₹50 Cashback', time: '4 hours ago' },
+            { name: 'Anjali', reward: 'Free Delivery', time: '6 hours ago' }
+        ];
+        localStorage.setItem('recentWinners', JSON.stringify(defaultWinners));
+        winnersList.innerHTML = defaultWinners.map(w => 
+            `<div class="winner-item">${w.name} won ${w.reward} • ${w.time}</div>`
+        ).join('');
+    } else {
+        winnersList.innerHTML = winners.map(w => 
+            `<div class="winner-item">${w.name} won ${w.reward} • ${w.time}</div>`
+        ).join('');
+    }
+}
+
+// Add to recent winners
+function addToWinners(segment) {
+    const winners = JSON.parse(localStorage.getItem('recentWinners') || '[]');
+    const username = "{{ user.username|default:'You' }}";
+    
+    winners.unshift({
+        name: username === 'You' ? 'You' : username.split(' ')[0],
+        reward: segment.text,
+        time: 'just now'
+    });
+    
+    // Keep only last 5 winners
+    if (winners.length > 5) winners.pop();
+    
+    localStorage.setItem('recentWinners', JSON.stringify(winners));
+    loadRecentWinners();
+}
+
+// Save spin result to server
+function saveSpinResult(segment) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('/save-spin/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            offer: segment.text,
+            value: segment.value,
+            points: userSpinData.points
+        })
+    }).catch(error => console.error('Error saving spin:', error));
+}
+
+// Confetti effect
+function launchConfetti() {
+    // Create confetti elements
+    for (let i = 0; i < 150; i++) {
+        createConfettiPiece();
+    }
+}
+
+function createConfettiPiece() {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti-piece';
+    confetti.innerHTML = ['🎉', '🎊', '✨', '🌟', '💫', '⭐', '🎁', '💰'][Math.floor(Math.random() * 8)];
+    
+    confetti.style.position = 'fixed';
+    confetti.style.fontSize = Math.random() * 20 + 10 + 'px';
+    confetti.style.left = Math.random() * 100 + 'vw';
+    confetti.style.top = '-50px';
+    confetti.style.opacity = '0.8';
+    confetti.style.zIndex = '9999';
+    confetti.style.pointerEvents = 'none';
+    
+    document.body.appendChild(confetti);
+    
+    // Animation
+    const animation = confetti.animate([
+        { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+        { transform: `translateY(${window.innerHeight + 100}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+    ], {
+        duration: Math.random() * 3000 + 2000,
+        easing: 'cubic-bezier(0.215, 0.61, 0.355, 1)'
+    });
+    
+    animation.onfinish = () => confetti.remove();
+}
+
+// Show notification
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        background: ${type === 'error' ? '#ff4757' : type === 'success' ? '#2ed573' : '#1e90ff'};
+        color: white;
+        border-radius: 10px;
+        z-index: 9999;
+        animation: slideInRight 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Event listeners
+spinBtn.addEventListener('click', openWheel);
+
+// Close popup when clicking outside
+wheelPopup.addEventListener('click', function(e) {
+    if (e.target === wheelPopup) {
+        closeWheel();
+    }
+});
+
+// Add notification styles
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+
+// Initialize floating button animation
+setInterval(() => {
+    spinBtn.style.animation = 'none';
+    setTimeout(() => {
+        spinBtn.style.animation = 'pulse 2s infinite';
+    }, 10);
+}, 8000);
+</script>
+
+
+
+
+
+</body>
+
+</html>

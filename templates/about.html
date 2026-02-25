@@ -1,0 +1,191 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - BigBasket</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .navbar {
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+        }
+
+        .about-header {
+            background: url("{% static 'image/about-bg.jpg' %}") no-repeat center center/cover;
+            height: 50vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
+        }
+
+        .about-header h1 {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .about-content {
+            padding: 60px 0;
+        }
+
+        .about-content h2 {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .mission-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+
+        .mission-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0px 0px 20px rgba(0,0,0,0.3);
+        }
+
+        .team-section {
+            background-color: #f8f9fa;
+            padding: 60px 0;
+        }
+
+        .team-member img {
+            border-radius: 50%;
+            width: 130px;
+            height: 130px;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+
+        .footer {
+            background-color: #dc3545;
+            color: white;
+            text-align: center;
+            padding: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ✅ Navbar -->
+     {% include 'navbar.html' %}
+
+
+    <!-- ✅ About Header -->
+    <section class="about-header">
+        <h1>About Us</h1>
+    </section>
+
+    <!-- ✅ About Content -->
+    <section class="about-content">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-4">
+                    <img src="{% static 'image/logobb.png' %}" alt="BigBasket" class="img-fluid rounded-4 shadow">
+                </div>
+                <div class="col-md-6">
+                    <h2>Welcome to BigBasket</h2>
+                    <p class="mt-3">
+                        BigBasket is India’s leading online grocery store providing fresh vegetables, fruits, and daily essentials.
+                        Founded with a mission to make grocery shopping easier, faster, and more convenient,
+                        we serve millions of happy customers every day across multiple cities.
+                    </p>
+                    <p>
+                        From farm-fresh produce to household items — we deliver everything at your doorstep,
+                        ensuring quality and timely delivery.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ✅ Mission & Vision -->
+    <section class="container my-5">
+        <div class="text-center mb-5">
+            <h2 class="text-danger fw-bold">Our Mission & Vision</h2>
+            <p>We aim to redefine the way people buy groceries by combining technology, trust, and top-quality products.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card mission-card p-4 text-center">
+                    <h4 class="text-danger">Our Mission</h4>
+                    <p class="mt-2">
+                        To deliver fresh and quality groceries at the best prices,
+                        making everyday life easier for our customers through fast and reliable delivery.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mission-card p-4 text-center">
+                    <h4 class="text-danger">Our Vision</h4>
+                    <p class="mt-2">
+                        To become India’s most trusted online grocery platform,
+                        providing sustainable and customer-centric services to every household.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ✅ Team Section -->
+    <section class="team-section">
+        <div class="container text-center">
+            <h2 class="text-danger fw-bold mb-4">Our Team</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="team-member">
+                        <img src="{% static 'image/image1.jpg' %}" alt="Team Member">
+                        <h5 class="text-danger">Priya Rathod</h5>
+                        <p>CEO & Founder</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="team-member">
+                        <img src="{% static 'image/image2.jpg' %}" alt="Team Member">
+                        <h5 class="text-danger">Badal Jaiswal</h5>
+                        <p>Marketing Head</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="team-member">
+                        <img src="{% static 'image/image3.jpg' %}" alt="Team Member">
+                        <h5 class="text-danger">Goutam Yadav</h5>
+                        <p>Operations Manager</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="team-member">
+                        <img src="{% static 'image/image4.jpg' %}" alt="Team Member">
+                        <h5 class="text-danger">Mohit Karma</h5>
+                        <p>Operations Manager</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="team-member">
+                        <img src="{% static 'image/image5.jpg' %}" alt="Team Member">
+                        <h5 class="text-danger">Namrata Jaiswal</h5>
+                        <p>Operations Manager</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ✅ Footer -->
+    <footer class="footer">
+        <p class="mb-0">© 2025 BigBasket | All Rights Reserved</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"></script>
+</body>
+
+</html>
