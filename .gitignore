@@ -1,0 +1,32 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Environment variables
+.env
+
+# Django stuff
+*.log
+local_settings.py
+
+# SQLite database (recommended not to upload)
+db.sqlite3
+
+# Media files (optional - ignore if you don't want product images on GitHub)
+media/
+
+# Static files generated in production
+staticfiles/
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
